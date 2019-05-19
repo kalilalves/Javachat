@@ -1,7 +1,12 @@
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
+import java.net.UnknownHostException;
 import javax.swing.JOptionPane;
 
 /*
@@ -9,7 +14,6 @@ import javax.swing.JOptionPane;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author SEAGUL
@@ -19,11 +23,14 @@ public class chat_client extends javax.swing.JFrame {
     /**
      * Creates new form chat_client
      */
-    
     static Socket s;
     static DataInputStream din;
     static DataOutputStream dout;
     static String nickname;
+    static String ip;
+    static int port;
+    static String ips = myip();
+
     public chat_client() {
         initComponents();
     }
@@ -47,9 +54,16 @@ public class chat_client extends javax.swing.JFrame {
         setName("Cliente"); // NOI18N
         setResizable(false);
 
+        msg_area.setEditable(false);
         msg_area.setColumns(20);
         msg_area.setRows(5);
         jScrollPane1.setViewportView(msg_area);
+
+        msg_text.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                msg_textKeyPressed(evt);
+            }
+        });
 
         msg_send.setText("Enviar");
         msg_send.addActionListener(new java.awt.event.ActionListener() {
@@ -91,13 +105,26 @@ public class chat_client extends javax.swing.JFrame {
     private void msg_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_sendActionPerformed
         // TODO add your handling code here:
         try {
-            String msgout="";
-            msgout= msg_text.getText().trim();
-            dout.writeUTF(nickname + ": " +msgout);
+            String msgout = "";
+            msgout = msg_text.getText().trim();
+            dout.writeUTF(nickname + msgout);
+            msg_area.setText(msg_area.getText().trim() + "\n" + nickname + msg_text.getText().trim());
             msg_text.setText("");
+            msg_text.requestFocus();
         } catch (Exception e) {
+            System.out.println(e);
         }
     }//GEN-LAST:event_msg_sendActionPerformed
+
+    private void msg_textKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_msg_textKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == evt.VK_ENTER) {
+            try {
+                msg_send.doClick();
+            } catch (Exception e) {
+            }
+        }
+    }//GEN-LAST:event_msg_textKeyPressed
 
     /**
      * @param args the command line arguments
@@ -133,17 +160,55 @@ public class chat_client extends javax.swing.JFrame {
             }
         });
         try {
+            ip = "127.0.0.1"; //JOptionPane.showInputDialog(null, "O Endereço do servidor: ");
+            port = 12345; //Integer.parseInt(JOptionPane.showInputDialog(null, "A porta do servidor: "));
             nickname = JOptionPane.showInputDialog(null, "Digite o seu nome: ");
-            s = new Socket("192.168.56.1", 1201); //aqui faz a conexão até o ip do servidor e porta
+            s = new Socket(ip, port); //aqui faz a conexão até o ip do servidor e porta
             din = new DataInputStream(s.getInputStream());
             dout = new DataOutputStream(s.getOutputStream());
-            String msgin="";
-            while(!msgin.equals("exit")){
+            msg_area.setText(msg_area.getText().trim() + "Conectado com sucesso! \n" + ips);
+            dout.writeUTF("Cliente " + nickname + " conectado com sucesso! \n");
+            nickname = nickname + ": ";
+            String msgin = "";
+            while (!msgin.equals("exit")) {
                 msgin = din.readUTF();
-                msg_area.setText(msg_area.getText().trim()+"\n Server: "+msgin);
+                msg_area.setText(msg_area.getText().trim() + "\n" + msgin);
             }
+        } catch (UnknownHostException e) {
+            System.out.println("Servidor indisponivel!\n ");
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    private static String myip() {
+        // Returns the instance of InetAddress containing 
+        // local host name and address 
+        String ip1 = "";
+        String ip2 = "";
+        try {
+            InetAddress iplocal = InetAddress.getLocalHost();
+            ip1 = (iplocal.getHostAddress()).trim();
         } catch (Exception e) {
         }
+
+        // Find public IP address 
+        String ippublico = "";
+        try {
+            URL url_name = new URL("http://bot.whatismyipaddress.com");
+
+            BufferedReader sc
+                    = new BufferedReader(new InputStreamReader(url_name.openStream()));
+
+            // reads system IPAddress 
+            ippublico = sc.readLine().trim();
+        } catch (Exception e) {
+            ippublico = "Cannot Execute Properly";
+        }
+        ip2 = ippublico;
+        String result = "IP local: " + ip1 + "\n"
+                + "IP publico: " + ip2;
+        return result;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

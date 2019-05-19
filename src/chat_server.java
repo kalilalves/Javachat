@@ -1,16 +1,19 @@
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
+import java.net.UnknownHostException;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author SEAGUL
@@ -20,11 +23,13 @@ public class chat_server extends javax.swing.JFrame {
     /**
      * Creates new form chat_server
      */
-    
     static ServerSocket ss;
     static Socket s;
     static DataInputStream din;
     static DataOutputStream dout;
+    static String nickname = "Server: ";
+    static String ips = myip();
+
     public chat_server() {
         initComponents();
     }
@@ -48,13 +53,14 @@ public class chat_server extends javax.swing.JFrame {
         setName("Servidor"); // NOI18N
         setResizable(false);
 
+        msg_area.setEditable(false);
         msg_area.setColumns(20);
         msg_area.setRows(5);
         jScrollPane1.setViewportView(msg_area);
 
-        msg_text.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                msg_textActionPerformed(evt);
+        msg_text.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                msg_textKeyPressed(evt);
             }
         });
 
@@ -95,20 +101,28 @@ public class chat_server extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void msg_textActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_textActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_msg_textActionPerformed
-
     private void msg_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_sendActionPerformed
         try {
             String msgout = "";
             msgout = msg_text.getText().trim();
-            dout.writeUTF(msgout); //enviando mensagem para o cliente
+            dout.writeUTF(nickname + msgout); //enviando mensagem para o cliente
+            msg_area.setText(msg_area.getText().trim() + "\n" + nickname + msg_text.getText().trim());
             msg_text.setText("");
+            msg_text.requestFocus();
         } catch (Exception e) {
-            //tratar exeçes
+            System.out.println(e);
         }
     }//GEN-LAST:event_msg_sendActionPerformed
+
+    private void msg_textKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_msg_textKeyPressed
+        // TODO add your handling code here:
+        if (evt.getKeyCode() == evt.VK_ENTER) {
+            try {
+                msg_send.doClick();
+            } catch (Exception e) {
+            }
+        }
+    }//GEN-LAST:event_msg_textKeyPressed
 
     /**
      * @param args the command line arguments
@@ -143,22 +157,52 @@ public class chat_server extends javax.swing.JFrame {
                 new chat_server().setVisible(true);
             }
         });
-        
         String msgin = "";
         try {
-            ss= new ServerSocket(1201); //server inicia na porta 1201
+            ss = new ServerSocket(12345); //server inicia na porta 1201
             s = ss.accept(); //agora o server aceita conexoes
-            
+            msg_area.setText("Servidor iniciado com sucesso!\n" + ips);
             din = new DataInputStream(s.getInputStream());
             dout = new DataOutputStream(s.getOutputStream());
-            
-            while(!msgin.equals("exit")){
+
+            while (!msgin.equals("exit")) {
                 msgin = din.readUTF();
-                msg_area.setText(msg_area.getText().trim()+"\n"+msgin); //mostra mensagem do cliente
+                msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //mostra mensagem do cliente
             }
         } catch (Exception e) {
+            System.out.println(e);
         }
-        
+
+    }
+
+    private static String myip() {
+        // Returns the instance of InetAddress containing 
+        // local host name and address 
+        String ip1 = "";
+        String ip2 = "";
+        try {
+            InetAddress iplocal = InetAddress.getLocalHost();
+            ip1 = (iplocal.getHostAddress()).trim();
+        } catch (Exception e) {
+        }
+
+        // Find public IP address 
+        String ippublico=  "";
+        try {
+            URL url_name = new URL("http://bot.whatismyipaddress.com");
+
+            BufferedReader sc
+                    = new BufferedReader(new InputStreamReader(url_name.openStream()));
+
+            // reads system IPAddress 
+            ippublico = sc.readLine().trim();
+        } catch (Exception e) {
+            ippublico = "Cannot Execute Properly";
+        }
+        ip2 = ippublico;
+        String result = "IP local: "+ip1 +"\n"+
+                "IP publico: "+ ip2;
+        return result;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
