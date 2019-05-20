@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.net.UnknownHostException;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -23,12 +22,12 @@ public class chat_server extends javax.swing.JFrame {
     /**
      * Creates new form chat_server
      */
-    static ServerSocket ss;
-    static Socket s;
-    static DataInputStream din;
-    static DataOutputStream dout;
-    static String nickname = "Server: ";
-    static String ips = myip();
+    static ServerSocket ss; //Socket do servidor
+    static Socket s; //Socket de conexão ao servidor
+    static DataInputStream din; //Variavel de entrada de dados
+    static DataOutputStream dout; //Variavel de saida de dados
+    static String nickname = "Server: "; //Nome do cliente do servidor
+    static String ips = myip(); //Metodo para encontrar ip local e publico
 
     public chat_server() {
         initComponents();
@@ -103,23 +102,24 @@ public class chat_server extends javax.swing.JFrame {
 
     private void msg_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_sendActionPerformed
         try {
-            String msgout = "";
-            msgout = msg_text.getText().trim();
-            dout.writeUTF(nickname + msgout); //enviando mensagem para o cliente
-            msg_area.setText(msg_area.getText().trim() + "\n" + nickname + msg_text.getText().trim());
-            msg_text.setText("");
-            msg_text.requestFocus();
-        } catch (Exception e) {
-            System.out.println(e);
+            String msgout = ""; //Inicia limpando a variavel que ira receber o texto a ser enviado
+            msgout = msg_text.getText().trim(); //Capitura o texto a ser enviado
+            dout.writeUTF(nickname + msgout); //Envia para o servidor o nome do cliente da sessão e o texto
+            msg_area.setText(msg_area.getText().trim() + "\n" + msgout); //Escreve na tela do cliente a mensagem enviada
+            msg_text.setText(""); //Limpa a caixa de texto de envio
+            msg_text.setText(""); //Limpa a caixa de texto de envio
+        } catch (Exception e) { //Tratamento de erros do enviado
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
     }//GEN-LAST:event_msg_sendActionPerformed
 
     private void msg_textKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_msg_textKeyPressed
         // TODO add your handling code here:
-        if (evt.getKeyCode() == evt.VK_ENTER) {
+        if (evt.getKeyCode() == evt.VK_ENTER) { //Caso seja apertado a tecla Enter na caixa de texto de envio
             try {
-                msg_send.doClick();
-            } catch (Exception e) {
+                msg_send.doClick(); //Botão que realiza o envio é "clicado" caso seja apertado Enter na caixa de texto de envio
+            } catch (Exception e) { //Tratamento de erros do evento
+                msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
             }
         }
     }//GEN-LAST:event_msg_textKeyPressed
@@ -159,50 +159,46 @@ public class chat_server extends javax.swing.JFrame {
         });
         String msgin = "";
         try {
-            ss = new ServerSocket(12345); //server inicia na porta 1201
-            s = ss.accept(); //agora o server aceita conexoes
-            msg_area.setText("Servidor iniciado com sucesso!\n" + ips);
-            din = new DataInputStream(s.getInputStream());
-            dout = new DataOutputStream(s.getOutputStream());
+            ss = new ServerSocket(12345); //Porta que o sevidor ira usar
+            s = ss.accept(); //Liberando conexões externas ao servidor
+            msg_area.setText("Servidor iniciado com sucesso!\n" + ips); //
+            din = new DataInputStream(s.getInputStream()); //Inicia a metodo de entrada de dados
+            dout = new DataOutputStream(s.getOutputStream()); //Inicia a metodo de saida de dados
 
             while (!msgin.equals("exit")) {
-                msgin = din.readUTF();
-                msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //mostra mensagem do cliente
+                msgin = din.readUTF(); //Le o que o servidor envia
+                msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //Escreve na tela o que o servidor enviou
             }
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Exception e) { //Tratamento de erro ao tentar se conectar ao servidor 
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e);
         }
 
     }
 
-    private static String myip() {
-        // Returns the instance of InetAddress containing 
-        // local host name and address 
-        String ip1 = "";
-        String ip2 = "";
+    private static String myip() { //Metodo de busca de ip publico e local
+        //Procurando Ip local
+        String iplocal = ""; //Iniciando e limpando variavel que ira receber ip local
         try {
-            InetAddress iplocal = InetAddress.getLocalHost();
-            ip1 = (iplocal.getHostAddress()).trim();
-        } catch (Exception e) {
+            InetAddress endlocal = InetAddress.getLocalHost(); //Identifica o ip local da maquina 
+            iplocal = (endlocal.getHostAddress()).trim(); //Escreve na variavel o ip que é retornado 
+        } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip local
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
 
-        // Find public IP address 
-        String ippublico=  "";
+        //Procurando Ip publico
+        String ippublico = ""; //Iniciando e limpando variavel que ira receber ip publico
         try {
-            URL url_name = new URL("http://bot.whatismyipaddress.com");
-
-            BufferedReader sc
-                    = new BufferedReader(new InputStreamReader(url_name.openStream()));
-
-            // reads system IPAddress 
-            ippublico = sc.readLine().trim();
-        } catch (Exception e) {
-            ippublico = "Cannot Execute Properly";
+            URL url_name = new URL("http://bot.whatismyipaddress.com"); //Criando um link com o site que ira retornar o ip publico
+            BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream())); //Inicia o buffer para registrar o ip retornado pelo site
+            ippublico = sc.readLine().trim(); //Le o ip publico
+        } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip publico
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
-        ip2 = ippublico;
-        String result = "IP local: "+ip1 +"\n"+
-                "IP publico: "+ ip2;
-        return result;
+
+        //Criando texto para ser retornado a variavel global 
+        String resultado = "IP local: " + iplocal + "\n"
+                + "IP publico: " + ippublico;
+        return resultado; //Retornando o resultado em forma de texto para ser atribuido a varialvel 
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

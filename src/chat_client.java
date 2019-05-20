@@ -23,13 +23,13 @@ public class chat_client extends javax.swing.JFrame {
     /**
      * Creates new form chat_client
      */
-    static Socket s;
-    static DataInputStream din;
-    static DataOutputStream dout;
-    static String nickname;
-    static String ip;
-    static int port;
-    static String ips = myip();
+    static Socket s; //Socket de conexão ao servidor
+    static DataInputStream din; //Variavel de entrada de dados
+    static DataOutputStream dout; //Variavel de saida de dados
+    static String nickname; //Nome do cliente
+    static String ipserver; //Ip do servidor a se conectar
+    static int port; //Porta do servidor a se conectar
+    static String ips = myip(); //Metodo para encontrar ip local e publico
 
     public chat_client() {
         initComponents();
@@ -105,23 +105,24 @@ public class chat_client extends javax.swing.JFrame {
     private void msg_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_sendActionPerformed
         // TODO add your handling code here:
         try {
-            String msgout = "";
-            msgout = msg_text.getText().trim();
-            dout.writeUTF(nickname + msgout);
-            msg_area.setText(msg_area.getText().trim() + "\n" + nickname + msg_text.getText().trim());
-            msg_text.setText("");
-            msg_text.requestFocus();
-        } catch (Exception e) {
-            System.out.println(e);
+            String msgout = ""; //Inicia limpando a variavel que ira receber o texto a ser enviado
+            msgout = msg_text.getText().trim(); //Capitura o texto a ser enviado
+            dout.writeUTF(nickname + msgout); //Envia para o servidor o nome do cliente da sessão e o texto
+            msg_area.setText(msg_area.getText().trim() + "\n" + msgout); //Escreve na tela do cliente a mensagem enviada
+            msg_text.setText(""); //Limpa a caixa de texto de envio
+            msg_text.setText(""); //Limpa a caixa de texto de envio
+        } catch (Exception e) { //Tratamento de erros do enviado
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
     }//GEN-LAST:event_msg_sendActionPerformed
 
     private void msg_textKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_msg_textKeyPressed
         // TODO add your handling code here:
-        if (evt.getKeyCode() == evt.VK_ENTER) {
+        if (evt.getKeyCode() == evt.VK_ENTER) { //Caso seja apertado a tecla Enter na caixa de texto de envio
             try {
-                msg_send.doClick();
-            } catch (Exception e) {
+                msg_send.doClick(); //Botão que realiza o envio é "clicado" caso seja apertado Enter na caixa de texto de envio
+            } catch (Exception e) { //Tratamento de erros do evento
+                msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
             }
         }
     }//GEN-LAST:event_msg_textKeyPressed
@@ -160,55 +161,51 @@ public class chat_client extends javax.swing.JFrame {
             }
         });
         try {
-            ip = "127.0.0.1"; //JOptionPane.showInputDialog(null, "O Endereço do servidor: ");
-            port = 12345; //Integer.parseInt(JOptionPane.showInputDialog(null, "A porta do servidor: "));
-            nickname = JOptionPane.showInputDialog(null, "Digite o seu nome: ");
-            s = new Socket(ip, port); //aqui faz a conexão até o ip do servidor e porta
-            din = new DataInputStream(s.getInputStream());
-            dout = new DataOutputStream(s.getOutputStream());
-            msg_area.setText(msg_area.getText().trim() + "Conectado com sucesso! \n" + ips);
-            dout.writeUTF("Cliente " + nickname + " conectado com sucesso! \n");
-            nickname = nickname + ": ";
-            String msgin = "";
-            while (!msgin.equals("exit")) {
-                msgin = din.readUTF();
-                msg_area.setText(msg_area.getText().trim() + "\n" + msgin);
+            ipserver = "127.0.0.1"; //JOptionPane.showInputDialog(null, "O Endereço do servidor: "); Possivel entrada de ip do servidor 
+            port = 12345; //Integer.parseInt(JOptionPane.showInputDialog(null, "A porta do servidor: ")); Possivel entrada de porta do servidor 
+            nickname = JOptionPane.showInputDialog(null, "Digite o seu nome: "); //Solicitação de nome de usuario
+            s = new Socket(ipserver, port); //Conecta no servidor usando as variaveis passadas 
+            din = new DataInputStream(s.getInputStream()); //Inicia a metodo de entrada de dados
+            dout = new DataOutputStream(s.getOutputStream()); //Inicia a metodo de saida de dados
+            msg_area.setText(msg_area.getText().trim() + "Conectado com sucesso! \n" + ips); //Caso a conexão seja realizada com sucesso
+            dout.writeUTF("Cliente " + nickname + " conectado com sucesso! \n"); //Envia uma mensagem com a informação de sucesso de conexão 
+            nickname = nickname + ": "; //Adiciona ": " motivo estetico
+            String msgin = ""; //Inicia a varial entrada de dados
+            while (!msgin.equals("exit")) { //Começa a escutar o que o servidor tem para enviar
+                msgin = din.readUTF(); //Le o que o servidor envia
+                msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //Escreve na tela o que o servidor enviou
             }
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException e) { //Tratamento de erro caso não seja possivel conectar no servidor 
             System.out.println("Servidor indisponivel!\n ");
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Exception e) { //Tratamento de erro ao tentar se conectar ao servidor 
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e);
         }
     }
 
-    private static String myip() {
-        // Returns the instance of InetAddress containing 
-        // local host name and address 
-        String ip1 = "";
-        String ip2 = "";
+    private static String myip() { //Metodo de busca de ip publico e local
+        //Procurando Ip local
+        String iplocal = ""; //Iniciando e limpando variavel que ira receber ip local
         try {
-            InetAddress iplocal = InetAddress.getLocalHost();
-            ip1 = (iplocal.getHostAddress()).trim();
-        } catch (Exception e) {
+            InetAddress endlocal = InetAddress.getLocalHost(); //Identifica o ip local da maquina 
+            iplocal = (endlocal.getHostAddress()).trim(); //Escreve na variavel o ip que é retornado 
+        } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip local
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
 
-        // Find public IP address 
-        String ippublico = "";
+        //Procurando Ip publico
+        String ippublico = ""; //Iniciando e limpando variavel que ira receber ip publico
         try {
-            URL url_name = new URL("http://bot.whatismyipaddress.com");
-
-            BufferedReader sc
-                    = new BufferedReader(new InputStreamReader(url_name.openStream()));
-
-            // reads system IPAddress 
-            ippublico = sc.readLine().trim();
-        } catch (Exception e) {
-            ippublico = "Cannot Execute Properly";
+            URL url_name = new URL("http://bot.whatismyipaddress.com"); //Criando um link com o site que ira retornar o ip publico
+            BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream())); //Inicia o buffer para registrar o ip retornado pelo site
+            ippublico = sc.readLine().trim(); //Le o ip publico
+        } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip publico
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
         }
-        ip2 = ippublico;
-        String result = "IP local: " + ip1 + "\n"
-                + "IP publico: " + ip2;
-        return result;
+
+        //Criando texto para ser retornado a variavel global 
+        String resultado = "IP local: " + iplocal + "\n"
+                + "IP publico: " + ippublico;
+        return resultado; //Retornando o resultado em forma de texto para ser atribuido a varialvel 
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
