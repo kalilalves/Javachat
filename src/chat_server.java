@@ -3,6 +3,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.UTFDataFormatException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -103,13 +104,17 @@ public class chat_server extends javax.swing.JFrame {
     private void msg_sendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_msg_sendActionPerformed
         try {
             String msgout = ""; //Inicia limpando a variavel que ira receber o texto a ser enviado
-            msgout = msg_text.getText().trim(); //Capitura o texto a ser enviado
-            dout.writeUTF(nickname + msgout); //Envia para o servidor o nome do cliente da sessão e o texto
+            msgout = nickname + msg_text.getText().trim(); //Capitura o texto a ser enviado
+            dout.writeUTF(msgout); //Envia para o servidor o nome do cliente da sessão e o texto
             msg_area.setText(msg_area.getText().trim() + "\n" + msgout); //Escreve na tela do cliente a mensagem enviada
             msg_text.setText(""); //Limpa a caixa de texto de envio
             msg_text.setText(""); //Limpa a caixa de texto de envio
+        } catch (NullPointerException e) { //Tratamento de erros do evento
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: Algum metodo nao iniciado - " + e); //Captura de erro padrão
+        } catch (UTFDataFormatException e) { //Tratamento de erros do enviado
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: Texto muito longo - " + e); //Captura de erro padrão
         } catch (Exception e) { //Tratamento de erros do enviado
-            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro(1): " + e); //Captura de erro padrão
         }
     }//GEN-LAST:event_msg_sendActionPerformed
 
@@ -119,7 +124,7 @@ public class chat_server extends javax.swing.JFrame {
             try {
                 msg_send.doClick(); //Botão que realiza o envio é "clicado" caso seja apertado Enter na caixa de texto de envio
             } catch (Exception e) { //Tratamento de erros do evento
-                msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
+                msg_area.setText(msg_area.getText().trim() + "\n" + "Erro(2): " + e); //Captura de erro padrão
             }
         }
     }//GEN-LAST:event_msg_textKeyPressed
@@ -164,13 +169,12 @@ public class chat_server extends javax.swing.JFrame {
             msg_area.setText("Servidor iniciado com sucesso!\n" + ips); //
             din = new DataInputStream(s.getInputStream()); //Inicia a metodo de entrada de dados
             dout = new DataOutputStream(s.getOutputStream()); //Inicia a metodo de saida de dados
-
             while (!msgin.equals("exit")) {
                 msgin = din.readUTF(); //Le o que o servidor envia
                 msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //Escreve na tela o que o servidor enviou
             }
         } catch (Exception e) { //Tratamento de erro ao tentar se conectar ao servidor 
-            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e);
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro(3): " + e);
         }
 
     }
@@ -182,7 +186,7 @@ public class chat_server extends javax.swing.JFrame {
             InetAddress endlocal = InetAddress.getLocalHost(); //Identifica o ip local da maquina 
             iplocal = (endlocal.getHostAddress()).trim(); //Escreve na variavel o ip que é retornado 
         } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip local
-            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro(4): " + e); //Captura de erro padrão
         }
 
         //Procurando Ip publico
@@ -192,7 +196,7 @@ public class chat_server extends javax.swing.JFrame {
             BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream())); //Inicia o buffer para registrar o ip retornado pelo site
             ippublico = sc.readLine().trim(); //Le o ip publico
         } catch (Exception e) { //Tratamento de erro padrão ao tentar encontrar ip publico
-            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro: " + e); //Captura de erro padrão
+            msg_area.setText(msg_area.getText().trim() + "\n" + "Erro(5): " + e); //Captura de erro padrão
         }
 
         //Criando texto para ser retornado a variavel global 
