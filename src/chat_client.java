@@ -1,7 +1,11 @@
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UTFDataFormatException;
 import java.net.InetAddress;
@@ -32,6 +36,11 @@ public class chat_client extends javax.swing.JFrame {
     static String ipserver; //Ip do servidor a se conectar
     static int port; //Porta do servidor a se conectar
     static String ips = myip(); //Metodo para encontrar ip local e publico
+    public final static String FILE_TO_RECEIVED = "C:/Users/SEAGUL/Downloads/teste-dw.txt";  // you may change this, I give a
+    // different name because i don't want to
+    // overwrite the one used by server...
+
+    public final static int FILE_SIZE = 6022386;
 
     public chat_client() {
         initComponents();
@@ -81,11 +90,11 @@ public class chat_client extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(msg_text)
-                        .addGap(18, 18, 18)
-                        .addComponent(msg_send))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 380, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(msg_send)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -180,6 +189,7 @@ public class chat_client extends javax.swing.JFrame {
             while (!msgin.equals("exit")) { //Começa a escutar o que o servidor tem para enviar
                 msgin = din.readUTF(); //Le o que o servidor envia
                 msg_area.setText(msg_area.getText().trim() + "\n" + msgin); //Escreve na tela o que o servidor enviou
+
             }
         } catch (UnknownHostException e) { //Tratamento de erro caso não seja possivel conectar no servidor 
             System.out.println("Servidor indisponivel!\n ");
